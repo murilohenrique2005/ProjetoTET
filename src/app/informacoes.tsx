@@ -21,6 +21,13 @@ export default function Informacoes() {
     loadUserData();
   }, []);
 
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userNome');
+    await AsyncStorage.removeItem('userEmail');
+    await AsyncStorage.removeItem('userSenha');
+    router.push('/'); // Vai para a página inicial após logout
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>👤 Sua Conta</Text>
@@ -37,7 +44,11 @@ export default function Informacoes() {
       </View>
 
       <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-        <Text style={styles.buttonText}>← Voltar</Text>
+        <Text style={styles.buttonText}>Voltar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Sair Da Conta</Text>
       </TouchableOpacity>
     </View>
   );
@@ -55,7 +66,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 32,
     textAlign: 'center',
-    color: '#333',
+    color: '#764BA2',
   },
   card: {
     backgroundColor: '#fff',
@@ -71,7 +82,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#555',
+    color: '#764BA2',
     marginTop: 10,
   },
   value: {
@@ -80,10 +91,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#764BA2',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
+    marginBottom: 12,
+  },
+  logoutButton: {
+    backgroundColor: '#ff0000', // Vermelho para o botão de logout para diferenciar
   },
   buttonText: {
     color: '#fff',
