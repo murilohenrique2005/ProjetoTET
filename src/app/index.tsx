@@ -1,4 +1,4 @@
-import { View, Alert, Button, StyleSheet } from 'react-native';
+import { View, Alert, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useClienteDataBase } from '@/database/useClienteDataBase';
 import { Input } from '@/components/Input';
@@ -28,13 +28,12 @@ export default function Login() {
       const cliente = await clienteDataBase.findByEmailAndSenha(email, senha);
 
       if (cliente) {
-        // Salva nome, email e senha no AsyncStorage
         await AsyncStorage.setItem('userNome', cliente.nome);
         await AsyncStorage.setItem('userEmail', email);
         await AsyncStorage.setItem('userSenha', senha);
 
         Alert.alert("Bem-vindo", `Olá, ${cliente.nome}!`);
-        rota.push('/home'); // Redireciona para Home após login
+        rota.push('/home');
       } else {
         Alert.alert("Erro", "Email ou senha inválidos.");
       }
@@ -48,14 +47,26 @@ export default function Login() {
     <View style={styles.container}>
       <Texto style={styles.titulo}>Login</Texto>
 
-      <Input placeholder="Email" onChangeText={setEmail} value={email} keyboardType="email-address" />
-      <Input placeholder="Senha" onChangeText={setSenha} value={senha} secureTextEntry />
+      <Input
+        placeholder="Email"
+        onChangeText={setEmail}
+        value={email}
+        keyboardType="email-address"
+      />
+      <Input
+        placeholder="Senha"
+        onChangeText={setSenha}
+        value={senha}
+        secureTextEntry
+      />
 
-      <Button title="Entrar" onPress={handleLogin} />
+      <TouchableOpacity style={styles.botao} onPress={handleLogin}>
+        <Text style={styles.textoBotao}>Entrar</Text>
+      </TouchableOpacity>
 
-      <View style={{ marginTop: 20 }}>
-        <Button title="Criar Conta" onPress={() => rota.push('/cadastrar')} />
-      </View>
+      <TouchableOpacity style={[styles.botao, { marginTop: 20 }]} onPress={() => rota.push('/cadastrar')}>
+        <Text style={styles.textoBotao}>Criar Conta</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -70,5 +81,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     marginBottom: 20,
+  },
+  botao: {
+    backgroundColor: '#764BA2',
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  textoBotao: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
