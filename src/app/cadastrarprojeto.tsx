@@ -9,6 +9,7 @@ interface Projeto {
   data: string;
   userNome?: string;
   numeroPessoas?: string;
+  telefone?: string; // <-- Novo campo adicionado
 }
 
 interface Props {
@@ -23,12 +24,14 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [numeroPessoas, setNumeroPessoas] = useState('');
+  const [telefone, setTelefone] = useState(''); // <-- Novo estado para telefone
 
   const limparCampos = () => {
     setNome('');
     setDescricao('');
     setValor('');
     setNumeroPessoas('');
+    setTelefone('');
   };
 
   const salvarProjeto = () => {
@@ -45,6 +48,7 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
       data: new Date().toLocaleDateString('pt-BR'),
       userNome,
       numeroPessoas,
+      telefone, // <-- Incluído no objeto
     };
 
     onCadastroSuccess(novoProjeto);
@@ -94,6 +98,14 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
             style={styles.input}
             placeholderTextColor="#aaa"
           />
+          <TextInput
+            placeholder="Telefone para Contato"
+            value={telefone}
+            onChangeText={setTelefone}
+            keyboardType="phone-pad"
+            style={styles.input}
+            placeholderTextColor="#aaa"
+          />
 
           <View style={styles.buttonsContainer}>
             <TouchableOpacity onPress={onClose} style={[styles.button, styles.cancelButton]}>
@@ -109,7 +121,6 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
     </Modal>
   );
 }
-
 
 const styles = StyleSheet.create({
   modalOverlay: {
