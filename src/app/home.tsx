@@ -213,10 +213,10 @@ export default function Home() {
                 <Text style={styles.projetoDate}>Cadastrado em: {projeto.data}</Text>
 
                 <TouchableOpacity
-                  onPress={() => rota.push({ pathname: '/contato', params: { id: projeto.id } })}
+                  onPress={() => rota.push({ pathname: '/proposta', params: { id: projeto.id } })}
                   style={styles.propostaButton}
                 >
-                  <Text style={styles.propostaButtonText}>Contato</Text>
+                  <Text style={styles.propostaButtonText}>Fazer uma Proposta</Text>
                 </TouchableOpacity>
               </View>
             ))

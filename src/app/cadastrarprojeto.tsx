@@ -19,6 +19,7 @@ interface Props {
   userNome: string;
 }
 
+
 export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, userNome }: Props) {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
