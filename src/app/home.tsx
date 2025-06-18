@@ -32,21 +32,26 @@ export default function Home() {
   const rota = useRouter();
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const nome = await AsyncStorage.getItem('userNome');
-        const foto = await AsyncStorage.getItem('userFoto');
-        const savedProjetos = await AsyncStorage.getItem('projetos');
+  const loadData = async () => {
+    try {
+      const nome = await AsyncStorage.getItem('userNome');
+      const email = await AsyncStorage.getItem('userEmail');
+      const savedProjetos = await AsyncStorage.getItem('projetos');
 
-        if (nome) setUserNome(nome);
+      if (nome) setUserNome(nome);
+      if (savedProjetos) setProjetos(JSON.parse(savedProjetos));
+
+      if (email) {
+        const foto = await AsyncStorage.getItem(`userFoto_${email}`);
         if (foto) setUserFoto(foto);
-        if (savedProjetos) setProjetos(JSON.parse(savedProjetos));
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
       }
-    };
-    loadData();
-  }, []);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    }
+  };
+  loadData();
+}, []);
+
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('userNome');
@@ -213,10 +218,10 @@ export default function Home() {
                 <Text style={styles.projetoDate}>Cadastrado em: {projeto.data}</Text>
 
                 <TouchableOpacity
-                  onPress={() => rota.push({ pathname: '/proposta', params: { id: projeto.id } })}
+                  onPress={() => rota.push({ pathname: '/contato', params: { id: projeto.id } })}
                   style={styles.propostaButton}
                 >
-                  <Text style={styles.propostaButtonText}>Fazer uma Proposta</Text>
+                  <Text style={styles.propostaButtonText}>Contato</Text>
                 </TouchableOpacity>
               </View>
             ))

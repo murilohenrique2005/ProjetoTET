@@ -1,4 +1,3 @@
-// src/database/useClienteDataBase.ts
 import { useSQLiteContext } from 'expo-sqlite';
 
 export type ClienteDataBase = {
@@ -6,13 +5,15 @@ export type ClienteDataBase = {
   nome: string;
   email: string;
   senha: string;
+  telefone: string; // <- novo campo
 };
 
 export function useClienteDataBase() {
   const dataBase = useSQLiteContext();
 
-  // Cria a tabela, se não existir
+  // Cria a tabela e adiciona a coluna telefone se necessário
   async function criarTabela() {
+    // Cria a tabela se ainda não existir
     await dataBase.execAsync(`
       CREATE TABLE IF NOT EXISTS login (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,14 +22,25 @@ export function useClienteDataBase() {
         senha TEXT NOT NULL
       );
     `);
+
+    // Adiciona a coluna telefone, se ainda não existir
+    try {
+      await dataBase.execAsync(`
+        ALTER TABLE login ADD COLUMN telefone TEXT NOT NULL DEFAULT ''
+      `);
+    } catch (err: any) {
+      if (!String(err).includes('duplicate column name')) {
+        console.error('Erro ao adicionar coluna telefone:', err);
+      }
+    }
   }
 
   // Inserir novo cliente
   async function create(data: Omit<ClienteDataBase, 'id'>) {
-    await criarTabela(); // Garante que a tabela existe antes de inserir
+    await criarTabela(); // Garante que a tabela e a coluna existem
 
     const statement = await dataBase.prepareAsync(
-      'INSERT INTO login (email, nome, senha) VALUES ($email, $nome, $senha)'
+      'INSERT INTO login (email, nome, senha, telefone) VALUES ($email, $nome, $senha, $telefone)'
     );
 
     try {
@@ -36,6 +48,7 @@ export function useClienteDataBase() {
         $email: data.email,
         $nome: data.nome,
         $senha: data.senha,
+        $telefone: data.telefone,
       });
 
       const insertedRowId = result.lastInsertRowId.toString();
@@ -65,11 +78,6 @@ export function useClienteDataBase() {
     );
     return result.length > 0 ? result[0] : null;
   }
-  
-  
-  
-
-  
 
   return {
     create,

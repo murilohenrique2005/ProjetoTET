@@ -8,7 +8,9 @@ export default function Informacoes() {
   const [userNome, setUserNome] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userSenha, setUserSenha] = useState('');
+  const [userTelefone, setUserTelefone] = useState(''); // <- novo
   const [userFoto, setUserFoto] = useState(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -17,18 +19,19 @@ export default function Informacoes() {
       const email = await AsyncStorage.getItem('userEmail');
       const senha = await AsyncStorage.getItem('userSenha');
       const foto = await AsyncStorage.getItem('userFoto');
+      const telefone = await AsyncStorage.getItem('userTelefone'); // <- novo
 
       if (nome) setUserNome(nome);
       if (email) setUserEmail(email);
       if (senha) setUserSenha('*'.repeat(senha.length));
       if (foto) setUserFoto(foto);
+      if (telefone) setUserTelefone(telefone); // <- novo
     };
+
     loadUserData();
   }, []);
 
-  // Função para abrir galeria e escolher foto
   const pickImage = async () => {
-    // Pede permissão para acessar galeria
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       alert('Permissão para acessar fotos é necessária!');
@@ -39,7 +42,7 @@ export default function Informacoes() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
       allowsEditing: true,
-      aspect: [1, 1], // quadrado para ficar redondo depois
+      aspect: [1, 1],
     });
 
     if (!result.canceled && result.assets.length > 0) {
@@ -53,8 +56,9 @@ export default function Informacoes() {
     await AsyncStorage.removeItem('userNome');
     await AsyncStorage.removeItem('userEmail');
     await AsyncStorage.removeItem('userSenha');
+    await AsyncStorage.removeItem('userTelefone'); // <- novo
     await AsyncStorage.removeItem('userFoto');
-    router.push('/'); // Vai para a página inicial após logout
+    router.push('/');
   };
 
   return (
@@ -81,6 +85,9 @@ export default function Informacoes() {
 
         <Text style={styles.label}>Senha</Text>
         <Text style={styles.value}>{userSenha}</Text>
+
+        <Text style={styles.label}>Telefone</Text>
+        <Text style={styles.value}>{userTelefone}</Text>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={() => router.back()}>
@@ -118,7 +125,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     marginBottom: 30,
-    alignItems: 'center', // Para centralizar foto e textos
+    alignItems: 'center',
   },
   photoContainer: {
     marginBottom: 20,
@@ -126,7 +133,7 @@ const styles = StyleSheet.create({
   photo: {
     width: 120,
     height: 120,
-    borderRadius: 60, // redondo
+    borderRadius: 60,
   },
   photoPlaceholder: {
     borderWidth: 2,
@@ -155,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   logoutButton: {
-    backgroundColor: '#ff0000', // Vermelho para o botão de logout para diferenciar
+    backgroundColor: '#ff0000',
   },
   buttonText: {
     color: '#fff',

@@ -1,32 +1,54 @@
 import { View, Alert, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useClienteDataBase } from '@/database/useClienteDataBase';
 import { useRouter } from 'expo-router';
 import { Input } from '@/components/Input';
 import { Texto } from '@/components/Texto';
+import { TextInputMask } from 'react-native-masked-text';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Cadastrar() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [telefone, setTelefone] = useState("");
+
+  // Estados para mensagens de erro
+  const [nomeErro, setNomeErro] = useState("");
+  const [emailErro, setEmailErro] = useState("");
+  const [senhaErro, setSenhaErro] = useState("");
+  const [confirmarSenhaErro, setConfirmarSenhaErro] = useState("");
+  const [telefoneErro, setTelefoneErro] = useState("");
+
   const clienteDataBase = useClienteDataBase();
   const rota = useRouter();
 
+  useEffect(() => {
+    // Validações em tempo real
+    const nomeRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}$/;
+    setNomeErro(nome && !nomeRegex.test(nome) ? "Nome inválido. Use apenas letras." : "");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setEmailErro(email && !emailRegex.test(email) ? "Email inválido." : "");
+
+    const senhaRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    setSenhaErro(senha && !senhaRegex.test(senha) ? "A senha deve conter ao menos 6 caracteres, letras e números." : "");
+
+    setConfirmarSenhaErro(confirmarSenha && senha !== confirmarSenha ? "As senhas não coincidem." : "");
+
+    const telefoneRegex = /^\(\d{2}\)\d{5}-\d{4}$/;
+    setTelefoneErro(telefone && !telefoneRegex.test(telefone) ? "Telefone inválido. Use o formato (00)00000-0000." : "");
+  }, [nome, email, senha, confirmarSenha, telefone]);
+
   async function create() {
-    if (!nome || !email || !senha || !confirmarSenha) {
+    if (nomeErro || emailErro || senhaErro || confirmarSenhaErro || telefoneErro) {
+      Alert.alert("Erro", "Corrija os campos antes de continuar.");
+      return;
+    }
+
+    if (!nome || !email || !senha || !confirmarSenha || !telefone) {
       Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
-      return;
-    }
-
-    if (senha !== confirmarSenha) {
-      Alert.alert("Erro", "As senhas não coincidem.");
-      return;
-    }
-
-    const emailRegex = /\S+@\S+\.\S+/;
-    if (!emailRegex.test(email)) {
-      Alert.alert("Erro", "Email inválido.");
       return;
     }
 
@@ -37,12 +59,21 @@ export default function Cadastrar() {
     }
 
     try {
-      await clienteDataBase.create({ nome, email, senha });
+      await clienteDataBase.create({ nome, email, senha, telefone });
+
+      await AsyncStorage.setItem('userNome', nome);
+      await AsyncStorage.setItem('userEmail', email);
+      await AsyncStorage.setItem('userSenha', senha);
+      await AsyncStorage.setItem('userTelefone', telefone);
+
       Alert.alert("Sucesso", "Cliente cadastrado com sucesso!");
+
       setNome("");
       setEmail("");
       setSenha("");
       setConfirmarSenha("");
+      setTelefone("");
+
       rota.push("/");
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
@@ -55,9 +86,27 @@ export default function Cadastrar() {
       <Texto style={styles.titulo}>Cadastrar Cliente</Texto>
 
       <Input placeholder="Nome" onChangeText={setNome} value={nome} />
+      {nomeErro ? <Text style={styles.erro}>{nomeErro}</Text> : null}
+
       <Input placeholder="Email" onChangeText={setEmail} value={email} keyboardType="email-address" />
+      {emailErro ? <Text style={styles.erro}>{emailErro}</Text> : null}
+
       <Input placeholder="Senha" onChangeText={setSenha} value={senha} secureTextEntry />
+      {senhaErro ? <Text style={styles.erro}>{senhaErro}</Text> : null}
+
       <Input placeholder="Confirmar Senha" onChangeText={setConfirmarSenha} value={confirmarSenha} secureTextEntry />
+      {confirmarSenhaErro ? <Text style={styles.erro}>{confirmarSenhaErro}</Text> : null}
+
+      <TextInputMask
+        type={'custom'}
+        options={{ mask: '(99)99999-9999' }}
+        placeholder="Telefone"
+        value={telefone}
+        onChangeText={setTelefone}
+        style={styles.inputMask}
+        keyboardType="phone-pad"
+      />
+      {telefoneErro ? <Text style={styles.erro}>{telefoneErro}</Text> : null}
 
       <TouchableOpacity style={styles.botao} onPress={create}>
         <Text style={styles.textoBotao}>Cadastrar</Text>
@@ -99,5 +148,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  inputMask: {
+    borderWidth: 1,
+    borderColor: '#CCC',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 4,
+    fontSize: 16,
+    color: '#333',
+  },
+  erro: {
+    color: 'red',
+    marginBottom: 6,
+    fontSize: 13,
   },
 });

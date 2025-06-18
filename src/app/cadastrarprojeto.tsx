@@ -8,8 +8,8 @@ interface Projeto {
   valor: string;
   data: string;
   userNome?: string;
+  userEmail?: string;
   numeroPessoas?: string;
-  telefone?: string; // <-- Novo campo adicionado
 }
 
 interface Props {
@@ -17,22 +17,20 @@ interface Props {
   onClose: () => void;
   onCadastroSuccess: (projeto: Projeto) => void;
   userNome: string;
+  userEmail: string; // Novo prop para email
 }
 
-
-export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, userNome }: Props) {
+export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, userNome, userEmail }: Props) {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [numeroPessoas, setNumeroPessoas] = useState('');
-  const [telefone, setTelefone] = useState(''); // <-- Novo estado para telefone
 
   const limparCampos = () => {
     setNome('');
     setDescricao('');
     setValor('');
     setNumeroPessoas('');
-    setTelefone('');
   };
 
   const salvarProjeto = () => {
@@ -48,8 +46,8 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
       valor,
       data: new Date().toLocaleDateString('pt-BR'),
       userNome,
+      userEmail,       // Incluindo o email aqui
       numeroPessoas,
-      telefone, // <-- Incluído no objeto
     };
 
     onCadastroSuccess(novoProjeto);
@@ -58,12 +56,7 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.title}>Cadastrar Projeto</Text>
@@ -96,14 +89,6 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
             value={numeroPessoas}
             onChangeText={setNumeroPessoas}
             keyboardType="numeric"
-            style={styles.input}
-            placeholderTextColor="#aaa"
-          />
-          <TextInput
-            placeholder="Telefone para Contato"
-            value={telefone}
-            onChangeText={setTelefone}
-            keyboardType="phone-pad"
             style={styles.input}
             placeholderTextColor="#aaa"
           />

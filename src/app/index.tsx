@@ -9,6 +9,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+
+  const [emailErro, setEmailErro] = useState("");
+  const [senhaErro, setSenhaErro] = useState("");
+
   const clienteDataBase = useClienteDataBase();
   const rota = useRouter();
 
@@ -18,9 +22,21 @@ export default function Login() {
     });
   }, []);
 
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setEmailErro(email && !emailRegex.test(email) ? "Email inválido." : "");
+
+    setSenhaErro(senha && senha.length < 6 ? "A senha deve ter pelo menos 6 caracteres." : "");
+  }, [email, senha]);
+
   async function handleLogin() {
     if (!email || !senha) {
       Alert.alert("Erro", "Preencha email e senha.");
+      return;
+    }
+
+    if (emailErro || senhaErro) {
+      Alert.alert("Erro", "Corrija os erros antes de continuar.");
       return;
     }
 
@@ -53,12 +69,15 @@ export default function Login() {
         value={email}
         keyboardType="email-address"
       />
+      {emailErro ? <Text style={styles.erro}>{emailErro}</Text> : null}
+
       <Input
         placeholder="Senha"
         onChangeText={setSenha}
         value={senha}
         secureTextEntry
       />
+      {senhaErro ? <Text style={styles.erro}>{senhaErro}</Text> : null}
 
       <TouchableOpacity style={styles.botao} onPress={handleLogin}>
         <Text style={styles.textoBotao}>Entrar</Text>
@@ -93,5 +112,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  erro: {
+    color: 'red',
+    fontSize: 13,
+    marginBottom: 8,
+    marginLeft: 4,
   },
 });
