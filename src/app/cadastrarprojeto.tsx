@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { TextInputMask } from 'react-native-masked-text';
 
 interface Projeto {
   id: string;
@@ -10,6 +11,7 @@ interface Projeto {
   userNome?: string;
   userEmail?: string;
   numeroPessoas?: string;
+  telefone?: string;
 }
 
 interface Props {
@@ -17,7 +19,7 @@ interface Props {
   onClose: () => void;
   onCadastroSuccess: (projeto: Projeto) => void;
   userNome: string;
-  userEmail: string; // Novo prop para email
+  userEmail: string;
 }
 
 export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, userNome, userEmail }: Props) {
@@ -25,17 +27,39 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
   const [numeroPessoas, setNumeroPessoas] = useState('');
+  const [telefone, setTelefone] = useState('');
+
+  const telefoneRef = useRef<any>(null);
 
   const limparCampos = () => {
     setNome('');
     setDescricao('');
     setValor('');
     setNumeroPessoas('');
+    setTelefone('');
   };
 
   const salvarProjeto = () => {
     if (!nome.trim() || !descricao.trim() || !valor.trim()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    // Converter valor no formato "1.500,00" para número 1500.00
+    const valorNumerico = Number(valor.replace(/\./g, '').replace(',', '.'));
+
+    if (isNaN(valorNumerico)) {
+      Alert.alert('Erro', 'Valor inválido.');
+      return;
+    }
+
+    if (!telefone.trim()) {
+      Alert.alert('Erro', 'Por favor, informe o telefone.');
+      return;
+    }
+
+    if (telefoneRef.current && !telefoneRef.current.isValid()) {
+      Alert.alert('Erro', 'Telefone inválido. Por favor, digite no formato (00)00000-0000.');
       return;
     }
 
@@ -46,8 +70,9 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
       valor,
       data: new Date().toLocaleDateString('pt-BR'),
       userNome,
-      userEmail,       // Incluindo o email aqui
+      userEmail,
       numeroPessoas,
+      telefone,
     };
 
     onCadastroSuccess(novoProjeto);
@@ -68,6 +93,7 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
             style={styles.input}
             placeholderTextColor="#aaa"
           />
+
           <TextInput
             placeholder="Descrição"
             value={descricao}
@@ -76,6 +102,7 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
             multiline
             placeholderTextColor="#aaa"
           />
+
           <TextInput
             placeholder="Valor (R$)"
             value={valor}
@@ -84,6 +111,23 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
             style={styles.input}
             placeholderTextColor="#aaa"
           />
+
+          <TextInputMask
+            type={'cel-phone'}
+            options={{
+              maskType: 'BRL',
+              withDDD: true,
+              dddMask: '(99) ',
+            }}
+            value={telefone}
+            onChangeText={setTelefone}
+            keyboardType="phone-pad"
+            placeholder="(00)00000-0000"
+            style={styles.input}
+            placeholderTextColor="#aaa"
+            ref={telefoneRef}
+          />
+
           <TextInput
             placeholder="Número de Pessoas (opcional)"
             value={numeroPessoas}

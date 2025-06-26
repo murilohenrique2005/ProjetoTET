@@ -14,7 +14,6 @@ export default function Cadastrar() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [telefone, setTelefone] = useState("");
 
-  // Estados para mensagens de erro
   const [nomeErro, setNomeErro] = useState("");
   const [emailErro, setEmailErro] = useState("");
   const [senhaErro, setSenhaErro] = useState("");
@@ -25,7 +24,6 @@ export default function Cadastrar() {
   const rota = useRouter();
 
   useEffect(() => {
-    // Validações em tempo real
     const nomeRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}$/;
     setNomeErro(nome && !nomeRegex.test(nome) ? "Nome inválido. Use apenas letras." : "");
 
@@ -63,7 +61,6 @@ export default function Cadastrar() {
 
       await AsyncStorage.setItem('userNome', nome);
       await AsyncStorage.setItem('userEmail', email);
-      await AsyncStorage.setItem('userSenha', senha);
       await AsyncStorage.setItem('userTelefone', telefone);
 
       Alert.alert("Sucesso", "Cliente cadastrado com sucesso!");
@@ -74,7 +71,7 @@ export default function Cadastrar() {
       setConfirmarSenha("");
       setTelefone("");
 
-      rota.push("/");
+      rota.push('/'); // voltar para Home, se desejar
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
       Alert.alert("Erro", "Não foi possível cadastrar o cliente.");
@@ -120,47 +117,13 @@ export default function Cadastrar() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-    justifyContent: 'center',
-    backgroundColor: '#FFF',
-  },
-  titulo: {
-    fontSize: 24,
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  botao: {
-    backgroundColor: '#764BA2',
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  botaoVoltar: {
-    marginTop: 12,
-    backgroundColor: '#999',
-  },
-  textoBotao: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, padding: 10, justifyContent: 'center', backgroundColor: '#FFF' },
+  titulo: { fontSize: 24, textAlign: 'center', marginBottom: 20, fontWeight: 'bold', color: '#333' },
+  botao: { backgroundColor: '#764BA2', paddingVertical: 12, borderRadius: 6, alignItems: 'center', marginTop: 10 },
+  botaoVoltar: { marginTop: 12, backgroundColor: '#999' },
+  textoBotao: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   inputMask: {
-    borderWidth: 1,
-    borderColor: '#CCC',
-    borderRadius: 6,
-    padding: 12,
-    marginBottom: 4,
-    fontSize: 16,
-    color: '#333',
+    borderWidth: 1, borderColor: '#CCC', borderRadius: 6, padding: 12, marginBottom: 4, fontSize: 16, color: '#333'
   },
-  erro: {
-    color: 'red',
-    marginBottom: 6,
-    fontSize: 13,
-  },
+  erro: { color: 'red', marginBottom: 6, fontSize: 13 },
 });
