@@ -8,8 +8,8 @@ export default function Informacoes() {
   const [userNome, setUserNome] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userSenha, setUserSenha] = useState('');
-  const [userTelefone, setUserTelefone] = useState(''); // <- novo
-  const [userFoto, setUserFoto] = useState(null);
+  const [userTelefone, setUserTelefone] = useState('');
+  const [userFoto, setUserFoto] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -18,14 +18,18 @@ export default function Informacoes() {
       const nome = await AsyncStorage.getItem('userNome');
       const email = await AsyncStorage.getItem('userEmail');
       const senha = await AsyncStorage.getItem('userSenha');
-      const foto = await AsyncStorage.getItem('userFoto');
-      const telefone = await AsyncStorage.getItem('userTelefone'); // <- novo
+      const telefone = await AsyncStorage.getItem('userTelefone');
 
       if (nome) setUserNome(nome);
       if (email) setUserEmail(email);
       if (senha) setUserSenha('*'.repeat(senha.length));
-      if (foto) setUserFoto(foto);
-      if (telefone) setUserTelefone(telefone); // <- novo
+      if (telefone) setUserTelefone(telefone);
+
+      // Carregar foto específica do usuário
+      if (email) {
+        const foto = await AsyncStorage.getItem(`userFoto_${email}`);
+        if (foto) setUserFoto(foto);
+      }
     };
 
     loadUserData();
@@ -48,7 +52,9 @@ export default function Informacoes() {
     if (!result.canceled && result.assets.length > 0) {
       const uri = result.assets[0].uri;
       setUserFoto(uri);
-      await AsyncStorage.setItem('userFoto', uri);
+      if (userEmail) {
+        await AsyncStorage.setItem(`userFoto_${userEmail}`, uri);
+      }
     }
   };
 
@@ -56,8 +62,10 @@ export default function Informacoes() {
     await AsyncStorage.removeItem('userNome');
     await AsyncStorage.removeItem('userEmail');
     await AsyncStorage.removeItem('userSenha');
-    await AsyncStorage.removeItem('userTelefone'); // <- novo
-    await AsyncStorage.removeItem('userFoto');
+    await AsyncStorage.removeItem('userTelefone');
+    if (userEmail) {
+      await AsyncStorage.removeItem(`userFoto_${userEmail}`);
+    }
     router.push('/');
   };
 
@@ -66,7 +74,6 @@ export default function Informacoes() {
       <Text style={styles.title}>👤 Gerenciamento de Conta </Text>
 
       <View style={styles.card}>
-        {/* Foto redonda e botão para escolher */}
         <TouchableOpacity onPress={pickImage} style={styles.photoContainer}>
           {userFoto ? (
             <Image source={{ uri: userFoto }} style={styles.photo} />
@@ -102,19 +109,8 @@ export default function Informacoes() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    backgroundColor: '#F8F9FA',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 32,
-    textAlign: 'center',
-    color: '#764BA2',
-  },
+  container: { flex: 1, padding: 24, backgroundColor: '#F8F9FA', justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center', color: '#764BA2' },
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -127,33 +123,16 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     alignItems: 'center',
   },
-  photoContainer: {
-    marginBottom: 20,
-  },
-  photo: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
+  photoContainer: { marginBottom: 20 },
+  photo: { width: 120, height: 120, borderRadius: 60 },
   photoPlaceholder: {
     borderWidth: 2,
     borderColor: '#764BA2',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#764BA2',
-    marginTop: 10,
-    alignSelf: 'flex-start',
-  },
-  value: {
-    fontSize: 16,
-    color: '#000',
-    marginTop: 4,
-    alignSelf: 'flex-start',
-  },
+  label: { fontSize: 16, fontWeight: '600', color: '#764BA2', marginTop: 10, alignSelf: 'flex-start' },
+  value: { fontSize: 16, color: '#000', marginTop: 4, alignSelf: 'flex-start' },
   button: {
     backgroundColor: '#764BA2',
     paddingVertical: 14,
@@ -161,12 +140,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  logoutButton: {
-    backgroundColor: '#ff0000',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  logoutButton: { backgroundColor: '#ff0000' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

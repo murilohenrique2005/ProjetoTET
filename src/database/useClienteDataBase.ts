@@ -26,7 +26,7 @@ export function useClienteDataBase() {
     // Adiciona a coluna telefone, se ainda não existir
     try {
       await dataBase.execAsync(`
-        ALTER TABLE login ADD COLUMN telefone TEXT NOT NULL DEFAULT ''
+        ALTER TABLE logins ADD COLUMN telefone TEXT NOT NULL DEFAULT ''
       `);
     } catch (err: any) {
       if (!String(err).includes('duplicate column name')) {
@@ -40,7 +40,7 @@ export function useClienteDataBase() {
     await criarTabela(); // Garante que a tabela e a coluna existem
 
     const statement = await dataBase.prepareAsync(
-      'INSERT INTO login (email, nome, senha, telefone) VALUES ($email, $nome, $senha, $telefone)'
+      'INSERT INTO logins (email, nome, senha, telefone) VALUES ($email, $nome, $senha, $telefone)'
     );
 
     try {

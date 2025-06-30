@@ -1,5 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView, Alert, Image } from 'react-native';
-import { useState } from 'react';
+// home.tsx
+import React, { useState } from 'react';
+import { 
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ScrollView, Alert, Image 
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,7 +16,7 @@ interface Projeto {
   data: string;
   userNome: string;
   userFoto: string | null;
-  userEmail: string;  // <---- Adicionado email do usuário
+  userEmail: string;
   numeroPessoas?: string;
   telefone: string;
 }
@@ -32,7 +35,6 @@ export default function Home() {
 
   const rota = useRouter();
 
-  // Carrega dados do usuário e projetos do AsyncStorage
   const carregarUsuario = async () => {
     try {
       const nome = await AsyncStorage.getItem('userNome');
@@ -93,28 +95,26 @@ export default function Home() {
     ]);
   };
 
-  const closeFilterModal = () => setFilterModalVisible(false);
-
   const applyFilters = () => {
-    let projetosFiltrados = [...projetos];
-    switch (filterType) {
-      case 'maisRecente':
-        projetosFiltrados.sort((a, b) => (parseInt(b.id) || 0) - (parseInt(a.id) || 0));
-        break;
-      case 'maiorValor':
-        projetosFiltrados.sort((a, b) => (parseFloat(b.valor) || 0) - (parseFloat(a.valor) || 0));
-        break;
-      case 'menorValor':
-        projetosFiltrados.sort((a, b) => (parseFloat(a.valor) || 0) - (parseFloat(b.valor) || 0));
-        break;
-    }
-    setProjetos(projetosFiltrados);
-    setFilterModalVisible(false);
+    setFilterModalVisible(false); // fecha o modal, ordenação já no render
   };
 
-  const projetosFiltrados = projetos.filter(projeto =>
-    projeto.nome?.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const projetosFiltrados = [...projetos]
+    .filter(projeto =>
+      projeto.nome?.toLowerCase().includes(searchText.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (filterType) {
+        case 'maisRecente':
+          return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+        case 'maiorValor':
+          return (parseFloat(b.valor) || 0) - (parseFloat(a.valor) || 0);
+        case 'menorValor':
+          return (parseFloat(a.valor) || 0) - (parseFloat(b.valor) || 0);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <View style={styles.container}>
@@ -181,7 +181,9 @@ export default function Home() {
       {/* Conteúdo */}
       <View style={styles.content}>
         <View style={styles.greetingContainer}>
-          <Text style={styles.greetingText}>{userNome ? `Olá, ${userNome}!` : 'Olá!'}</Text>
+          <Text style={styles.greetingText}>
+            {userNome ? `Olá, ${userNome}!` : 'Olá!'}
+          </Text>
           <Text style={styles.welcomeText}>Seja bem-vindo!</Text>
         </View>
 
@@ -207,7 +209,6 @@ export default function Home() {
                 {projeto.numeroPessoas && <Text style={styles.projetoValue}>Pessoas: {projeto.numeroPessoas}</Text>}
                 <Text style={styles.projetoDate}>Cadastrado em: {projeto.data}</Text>
 
-                {/* Botão Contato - agora envia email via rota */}
                 <TouchableOpacity
                   style={styles.contatoButton}
                   onPress={() => rota.push({
@@ -225,7 +226,7 @@ export default function Home() {
         </ScrollView>
       </View>
 
-      {/* Modal de cadastro */}
+      {/* Modais */}
       <CadastrarProjeto
         visible={cadastroModalVisible}
         onClose={() => setCadastroModalVisible(false)}
@@ -235,68 +236,58 @@ export default function Home() {
       />
 
       {/* Modal de Filtro */}
-      <Modal visible={filterModalVisible} animationType="slide" transparent={true} onRequestClose={closeFilterModal}>
+      <Modal visible={filterModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Filtrar Projetos</Text>
 
-            <TouchableOpacity onPress={() => setFilterType('maisRecente')} style={styles.radioOption}>
-              <Ionicons name={filterType === 'maisRecente' ? 'radio-button-on' : 'radio-button-off'} size={24} color="#764BA2" />
-              <Text style={styles.radioText}>Mais recentes</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => setFilterType('maiorValor')} style={styles.radioOption}>
-              <Ionicons name={filterType === 'maiorValor' ? 'radio-button-on' : 'radio-button-off'} size={24} color="#764BA2" />
-              <Text style={styles.radioText}>Maior valor</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => setFilterType('menorValor')} style={styles.radioOption}>
-              <Ionicons name={filterType === 'menorValor' ? 'radio-button-on' : 'radio-button-off'} size={24} color="#764BA2" />
-              <Text style={styles.radioText}>Menor valor</Text>
-            </TouchableOpacity>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity onPress={closeFilterModal} style={[styles.modalButton, styles.cancelButton]}>
-                <Text style={styles.modalButtonText}>Cancelar</Text>
+            {['maisRecente', 'maiorValor', 'menorValor'].map(type => (
+              <TouchableOpacity key={type} onPress={() => setFilterType(type)} style={styles.radioOption}>
+                <Ionicons name={filterType === type ? 'radio-button-on' : 'radio-button-off'} size={24} color="#764BA2" />
+                <Text style={styles.radioText}>
+                  {type === 'maisRecente' ? 'Mais recentes' : type === 'maiorValor' ? 'Maior valor' : 'Menor valor'}
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={applyFilters} style={[styles.modalButton, styles.applyButton]}>
-                <Text style={styles.modalButtonText}>Aplicar</Text>
-              </TouchableOpacity>
-            </View>
+            ))}
+
+            <TouchableOpacity onPress={applyFilters} style={styles.applyButton}>
+              <Text style={styles.applyButtonText}>Aplicar</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       {/* Modal Meus Projetos */}
-      <Modal visible={userProjectsModalVisible} animationType="slide" transparent={false}>
-        <View style={styles.userProjectsContainer}>
-          <Text style={styles.userProjectsTitle}>Meus Projetos</Text>
-          <ScrollView>
-            {projetosDoUsuario.length > 0 ? (
-              projetosDoUsuario.map((projeto) => (
-                <View key={projeto.id} style={styles.projetoCard}>
-                  <Text style={styles.projetoTitle}>{projeto.nome}</Text>
-                  <Text style={styles.projetoText}>{projeto.descricao}</Text>
-                  <Text style={styles.projetoValue}>Valor: R$ {projeto.valor}</Text>
-                  <Text style={styles.projetoDate}>Cadastrado em: {projeto.data}</Text>
-                  <TouchableOpacity
-                    onPress={() => removerProjeto(projeto.id)}
-                    style={styles.removerButton}
-                  >
-                    <Text style={styles.removerButtonText}>Remover</Text>
-                  </TouchableOpacity>
-                </View>
-              ))
-            ) : (
-              <Text style={styles.noProjetosText}>Você não possui projetos cadastrados.</Text>
-            )}
-          </ScrollView>
-          <TouchableOpacity
-            onPress={() => setUserProjectsModalVisible(false)}
-            style={styles.fecharModalButton}
-          >
-            <Text style={styles.fecharModalButtonText}>Fechar</Text>
-          </TouchableOpacity>
+      <Modal visible={userProjectsModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContentLarge}>
+            <Text style={styles.modalTitle}>Meus Projetos</Text>
+            <ScrollView style={{ flex: 1 }}>
+              {projetosDoUsuario.length > 0 ? (
+                projetosDoUsuario.map(projeto => (
+                  <View key={projeto.id} style={styles.projetoCard}>
+                    <Text style={styles.projetoTitle}>{projeto.nome}</Text>
+                    <Text style={styles.projetoText}>{projeto.descricao}</Text>
+                    <Text style={styles.projetoValue}>Valor: R$ {projeto.valor}</Text>
+                    <Text style={styles.projetoDate}>Cadastrado em: {projeto.data}</Text>
+
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => removerProjeto(projeto.id)}
+                    >
+                      <Text style={styles.deleteButtonText}>Excluir</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noProjetosText}>Você não possui projetos cadastrados.</Text>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity onPress={() => setUserProjectsModalVisible(false)} style={styles.closeModalButton}>
+              <Text style={styles.closeModalButtonText}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
@@ -318,15 +309,17 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   searchContainer: {
-    flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#F3EDF7',
-    borderRadius: 8,
     alignItems: 'center',
-    paddingHorizontal: 10,
+    backgroundColor: '#F1E6FF',
+    borderRadius: 8,
+    flex: 1,
+    marginRight: 8,
+    paddingHorizontal: 8,
   },
 
   searchIcon: {
@@ -336,17 +329,15 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    fontSize: 16,
     color: '#764BA2',
   },
 
   filterButton: {
-    marginLeft: 12,
-    padding: 6,
+    padding: 8,
   },
 
   userIcon: {
-    marginLeft: 12,
+    padding: 4,
   },
 
   userPhoto: {
@@ -356,17 +347,17 @@ const styles = StyleSheet.create({
   },
 
   dropdown: {
-    marginTop: 10,
-    backgroundColor: '#764BA2',
-    padding: 12,
+    backgroundColor: '#F1E6FF',
+    padding: 16,
     borderRadius: 8,
+    marginTop: 8,
   },
 
   userName: {
-    color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 16,
     marginBottom: 8,
+    color: '#764BA2',
   },
 
   dropdownButton: {
@@ -374,42 +365,40 @@ const styles = StyleSheet.create({
   },
 
   dropdownButtonText: {
-    color: '#fff',
     fontSize: 14,
+    color: '#764BA2',
   },
 
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 10,
+    padding: 16,
   },
 
   greetingContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
 
   greetingText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#764BA2',
   },
 
   welcomeText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#764BA2',
   },
 
   cadastrarButton: {
     backgroundColor: '#764BA2',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 8,
+    marginBottom: 16,
     alignItems: 'center',
-    marginBottom: 20,
   },
 
   cadastrarButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
   },
 
@@ -418,60 +407,58 @@ const styles = StyleSheet.create({
   },
 
   projetoCard: {
-    backgroundColor: '#F3EDF7',
+    backgroundColor: '#F1E6FF',
+    padding: 16,
     borderRadius: 8,
-    padding: 12,
     marginBottom: 12,
   },
 
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
 
   userIconSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     marginRight: 8,
   },
 
   projetoUser: {
-    fontSize: 14,
-    color: '#764BA2',
     fontWeight: 'bold',
+    fontSize: 16,
+    color: '#764BA2',
   },
 
   projetoTitle: {
-    fontSize: 18,
     fontWeight: 'bold',
-    color: '#4B0082',
-    marginBottom: 6,
+    fontSize: 18,
+    color: '#764BA2',
+    marginBottom: 4,
   },
 
   projetoText: {
-    fontSize: 14,
-    color: '#4B0082',
-    marginBottom: 6,
+    color: '#764BA2',
+    marginBottom: 4,
   },
 
   projetoValue: {
-    fontSize: 14,
-    color: '#4B0082',
-    marginBottom: 6,
+    fontWeight: 'bold',
+    color: '#764BA2',
   },
 
   projetoDate: {
     fontSize: 12,
-    color: '#7B68EE',
+    color: '#764BA2',
     marginBottom: 8,
   },
 
   contatoButton: {
     backgroundColor: '#764BA2',
-    paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: 8,
+    paddingVertical: 6,
     alignItems: 'center',
   },
 
@@ -481,108 +468,89 @@ const styles = StyleSheet.create({
   },
 
   noProjetosText: {
-    fontSize: 16,
-    color: '#764BA2',
     textAlign: 'center',
-    marginTop: 40,
+    color: '#764BA2',
+    marginTop: 20,
   },
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   modalContent: {
     backgroundColor: '#fff',
-    width: '90%',
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 12,
+    width: '80%',
+  },
+
+  modalContentLarge: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    width: '90%',
+    height: '80%',
   },
 
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#764BA2',
-    marginBottom: 20,
+    marginBottom: 16,
+    textAlign: 'center',
   },
 
   radioOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
 
   radioText: {
-    marginLeft: 8,
     fontSize: 16,
+    marginLeft: 8,
     color: '#764BA2',
-  },
-
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-
-  modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-
-  cancelButton: {
-    backgroundColor: '#D3D3D3',
   },
 
   applyButton: {
     backgroundColor: '#764BA2',
-  },
-
-  modalButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-
-  userProjectsContainer: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-
-  userProjectsTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#764BA2',
-    marginBottom: 12,
-  },
-
-  removerButton: {
-    marginTop: 8,
-    backgroundColor: '#FF6B6B',
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
     alignItems: 'center',
   },
 
-  removerButtonText: {
+  applyButtonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
 
-  fecharModalButton: {
-    marginTop: 20,
+  deleteButton: {
+    backgroundColor: '#ff5555',
+    borderRadius: 8,
+    paddingVertical: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+
+  deleteButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+
+  closeModalButton: {
     backgroundColor: '#764BA2',
     paddingVertical: 12,
     borderRadius: 8,
+    marginTop: 12,
     alignItems: 'center',
   },
 
-  fecharModalButtonText: {
+  closeModalButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
   },
 });

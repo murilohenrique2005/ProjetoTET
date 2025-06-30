@@ -1,6 +1,5 @@
 import { View, Alert, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useState, useEffect } from 'react';
-import { useClienteDataBase } from '@/database/useClienteDataBase';
 import { Input } from '@/components/Input';
 import { Texto } from '@/components/Texto';
 import { useRouter } from 'expo-router';
@@ -13,14 +12,7 @@ export default function Login() {
   const [emailErro, setEmailErro] = useState("");
   const [senhaErro, setSenhaErro] = useState("");
 
-  const clienteDataBase = useClienteDataBase();
   const rota = useRouter();
-
-  useEffect(() => {
-    clienteDataBase.criarTabela().catch((e) => {
-      console.error("Erro ao criar tabela:", e);
-    });
-  }, []);
 
   useEffect(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,17 +33,28 @@ export default function Login() {
     }
 
     try {
-      const cliente = await clienteDataBase.findByEmailAndSenha(email, senha);
+      console.log("Tentando login com", email, senha);
 
-      if (cliente) {
-        await AsyncStorage.setItem('userNome', cliente.nome);
-        await AsyncStorage.setItem('userEmail', email);
-        await AsyncStorage.setItem('userSenha', senha);
+      const response = await fetch('http://10.0.2.2:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha }),
+      });
 
-        Alert.alert("Bem-vindo", `Olá, ${cliente.nome}!`);
+      console.log("Resposta recebida:", response.status);
+
+      const data = await response.json();
+      console.log("Dados do login:", data);
+
+      if (response.ok && data.user) {
+        await AsyncStorage.setItem('userNome', data.user.nome);
+        await AsyncStorage.setItem('userEmail', data.user.email);
+        // Não salve senha no AsyncStorage em apps reais
+
+        Alert.alert("Bem-vindo", `Olá, ${data.user.nome}!`);
         rota.push('/home');
       } else {
-        Alert.alert("Erro", "Email ou senha inválidos.");
+        Alert.alert("Erro", data.message || "Email ou senha inválidos.");
       }
     } catch (error) {
       console.error("Erro no login:", error);
@@ -68,6 +71,7 @@ export default function Login() {
         onChangeText={setEmail}
         value={email}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       {emailErro ? <Text style={styles.erro}>{emailErro}</Text> : null}
 
@@ -100,6 +104,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     marginBottom: 20,
+    fontWeight: 'bold',
   },
   botao: {
     backgroundColor: '#764BA2',

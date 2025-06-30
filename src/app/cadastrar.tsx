@@ -1,6 +1,5 @@
 import { View, Alert, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useState, useEffect } from 'react';
-import { useClienteDataBase } from '@/database/useClienteDataBase';
 import { useRouter } from 'expo-router';
 import { Input } from '@/components/Input';
 import { Texto } from '@/components/Texto';
@@ -20,7 +19,6 @@ export default function Cadastrar() {
   const [confirmarSenhaErro, setConfirmarSenhaErro] = useState("");
   const [telefoneErro, setTelefoneErro] = useState("");
 
-  const clienteDataBase = useClienteDataBase();
   const rota = useRouter();
 
   useEffect(() => {
@@ -50,31 +48,37 @@ export default function Cadastrar() {
       return;
     }
 
-    const clienteExistente = await clienteDataBase.getByEmail(email);
-    if (clienteExistente) {
-      Alert.alert("Erro", "Este email já está cadastrado no sistema.");
-      return;
-    }
-
     try {
-      await clienteDataBase.create({ nome, email, senha, telefone });
+      const response = await fetch('http://10.0.2.2:3000/logins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nome, email, senha, telefone }),
+      });
 
-      await AsyncStorage.setItem('userNome', nome);
-      await AsyncStorage.setItem('userEmail', email);
-      await AsyncStorage.setItem('userTelefone', telefone);
+      const data = await response.json();
 
-      Alert.alert("Sucesso", "Cliente cadastrado com sucesso!");
+      if (response.status === 201) {
+        await AsyncStorage.setItem('userNome', nome);
+        await AsyncStorage.setItem('userEmail', email);
+        await AsyncStorage.setItem('userTelefone', telefone);
 
-      setNome("");
-      setEmail("");
-      setSenha("");
-      setConfirmarSenha("");
-      setTelefone("");
+        Alert.alert("Sucesso", "Cliente cadastrado com sucesso!");
 
-      rota.push('/'); // voltar para Home, se desejar
+        setNome("");
+        setEmail("");
+        setSenha("");
+        setConfirmarSenha("");
+        setTelefone("");
+
+        rota.push('/'); // voltar para Home
+      } else {
+        Alert.alert("Erro", data.message || "Erro ao cadastrar cliente.");
+      }
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
-      Alert.alert("Erro", "Não foi possível cadastrar o cliente.");
+      Alert.alert("Erro", "Não foi possível conectar ao servidor.");
     }
   }
 
