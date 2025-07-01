@@ -9,7 +9,6 @@ interface Projeto {
   valor: string;
   data: string;
   userNome?: string;
-  userEmail?: string;
   numeroPessoas?: string;
   telefone?: string;
 }
@@ -19,10 +18,10 @@ interface Props {
   onClose: () => void;
   onCadastroSuccess: (projeto: Projeto) => void;
   userNome: string;
-  userEmail: string;
+  // userEmail removido daqui
 }
 
-export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, userNome, userEmail }: Props) {
+export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, userNome }: Props) {
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [valor, setValor] = useState('');
@@ -39,14 +38,13 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
     setTelefone('');
   };
 
-  const salvarProjeto = () => {
+  const salvarProjeto = async () => {
     if (!nome.trim() || !descricao.trim() || !valor.trim()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
-    // Converter valor no formato "1.500,00" para número 1500.00
-    const valorNumerico = Number(valor.replace(/\./g, '').replace(',', '.'));
+    const valorNumerico = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
 
     if (isNaN(valorNumerico)) {
       Alert.alert('Erro', 'Valor inválido.');
@@ -59,25 +57,51 @@ export default function CadastrarProjeto({ visible, onClose, onCadastroSuccess, 
     }
 
     if (telefoneRef.current && !telefoneRef.current.isValid()) {
-      Alert.alert('Erro', 'Telefone inválido. Por favor, digite no formato (00)00000-0000.');
+      Alert.alert('Erro', 'Telefone inválido. Use o formato (00)00000-0000.');
       return;
     }
 
-    const novoProjeto: Projeto = {
+    const projeto: Projeto = {
       id: Date.now().toString(),
       nome,
       descricao,
       valor,
       data: new Date().toLocaleDateString('pt-BR'),
       userNome,
-      userEmail,
       numeroPessoas,
       telefone,
     };
 
-    onCadastroSuccess(novoProjeto);
-    limparCampos();
-    onClose();
+    try {
+      const response = await fetch('http://10.133.47.48:3000/cadastrar-projeto', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: projeto.nome,
+          descricao: projeto.descricao,
+          valor: projeto.valor,
+          telefone: projeto.telefone,
+          // userEmail removido daqui
+          numeroPessoas: projeto.numeroPessoas,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao cadastrar projeto.');
+      }
+
+      Alert.alert('Sucesso', data.message || 'Projeto cadastrado com sucesso!');
+      onCadastroSuccess(projeto);
+      limparCampos();
+      onClose();
+    } catch (error: any) {
+      console.error('Erro ao cadastrar projeto:', error);
+      Alert.alert('Erro', error.message || 'Erro ao cadastrar projeto.');
+    }
   };
 
   return (
@@ -159,14 +183,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   modalContent: {
     width: '90%',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
   },
-
   title: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -174,7 +196,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
-
   input: {
     borderWidth: 1,
     borderColor: '#764BA2',
@@ -184,12 +205,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: '#764BA2',
   },
-
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-
   button: {
     flex: 1,
     paddingVertical: 12,
@@ -197,15 +216,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 5,
   },
-
   cancelButton: {
     backgroundColor: '#ddd',
   },
-
   saveButton: {
     backgroundColor: '#764BA2',
   },
-
   buttonText: {
     fontSize: 16,
     fontWeight: '600',

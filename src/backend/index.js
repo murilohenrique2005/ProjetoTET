@@ -78,4 +78,49 @@ app.post('/login', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });
+
+app.post('/cadastrar-projeto', (req, res) => {
+  const {
+    nome,
+    descricao,
+    valor,
+    telefone,
+    numeroPessoas,
+  } = req.body;
+
+  // Validações básicas
+  if (!nome || !descricao || !valor || !telefone) {
+    return res.status(400).json({ message: 'Campos obrigatórios estão faltando.' });
+  }
+
+  const valorNumerico = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+  const qtdPessoas = parseInt(numeroPessoas || '1'); // padrão 1 se vazio
+
+  const query = `
+    INSERT INTO projetos (
+      nome_projeto,
+      descricao,
+      valor,
+      data_criacao,
+      telefone,
+      qtd_pessoas
+    ) VALUES (?, ?, ?, NOW(), ?, ?)
+  `;
+
+  db.query(
+    query,
+    [nome, descricao, valorNumerico, telefone, qtdPessoas],
+    (err, result) => {
+      if (err) {
+        console.error('Erro ao inserir projeto:', err);
+        return res.status(500).json({ message: 'Erro ao cadastrar projeto.' });
+      }
+
+      console.log('Projeto cadastrado com sucesso:', result);
+      res.status(201).json({ message: 'Projeto cadastrado com sucesso!' });
+    }
+  );
+});
+
+
  
