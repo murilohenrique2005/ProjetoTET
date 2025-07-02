@@ -49,9 +49,11 @@ export default function Home() {
     }
   };
 
-  useFocusEffect(() => {
-    carregarUsuario();
-  });
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarUsuario();
+    }, [])
+  );
 
   const handleLogout = async () => {
     await AsyncStorage.multiRemove([
@@ -96,7 +98,7 @@ export default function Home() {
   };
 
   const applyFilters = () => {
-    setFilterModalVisible(false); // fecha o modal, ordenação já no render
+    setFilterModalVisible(false);
   };
 
   const projetosFiltrados = [...projetos]
@@ -133,15 +135,21 @@ export default function Home() {
             />
           </View>
 
-          <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
-            <Ionicons name="filter" size={24} color="#764BA2" />
+          <TouchableOpacity 
+            onPress={() => setFilterModalVisible(true)} 
+            style={styles.filterButton}
+          >
+            <Ionicons name="filter-outline" size={24} color="#764BA2" style={styles.icon} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)} style={styles.userIcon}>
+          <TouchableOpacity 
+            onPress={() => setMenuVisible(!menuVisible)} 
+            style={styles.userIcon}
+          >
             {userFoto ? (
               <Image source={{ uri: userFoto }} style={styles.userPhoto} />
             ) : (
-              <Ionicons name="person-circle-outline" size={32} color="#764BA2" />
+              <Ionicons name="person-circle-outline" size={32} color="#764BA2" style={styles.icon} />
             )}
           </TouchableOpacity>
         </View>
@@ -187,7 +195,10 @@ export default function Home() {
           <Text style={styles.welcomeText}>Seja bem-vindo!</Text>
         </View>
 
-        <TouchableOpacity onPress={() => setCadastroModalVisible(true)} style={styles.cadastrarButton}>
+        <TouchableOpacity 
+          onPress={() => setCadastroModalVisible(true)} 
+          style={styles.cadastrarButton}
+        >
           <Text style={styles.cadastrarButtonText}>Cadastrar Projeto</Text>
         </TouchableOpacity>
 
@@ -243,7 +254,11 @@ export default function Home() {
 
             {['maisRecente', 'maiorValor', 'menorValor'].map(type => (
               <TouchableOpacity key={type} onPress={() => setFilterType(type)} style={styles.radioOption}>
-                <Ionicons name={filterType === type ? 'radio-button-on' : 'radio-button-off'} size={24} color="#764BA2" />
+                <Ionicons 
+                  name={filterType === type ? 'radio-button-on' : 'radio-button-off'} 
+                  size={24} 
+                  color="#764BA2" 
+                />
                 <Text style={styles.radioText}>
                   {type === 'maisRecente' ? 'Mais recentes' : type === 'maiorValor' ? 'Maior valor' : 'Menor valor'}
                 </Text>
@@ -284,7 +299,10 @@ export default function Home() {
               )}
             </ScrollView>
 
-            <TouchableOpacity onPress={() => setUserProjectsModalVisible(false)} style={styles.closeModalButton}>
+            <TouchableOpacity 
+              onPress={() => setUserProjectsModalVisible(false)} 
+              style={styles.closeModalButton}
+            >
               <Text style={styles.closeModalButtonText}>Fechar</Text>
             </TouchableOpacity>
           </View>
@@ -295,8 +313,10 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff' 
+  },
   header: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,
@@ -305,13 +325,11 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 10,
   },
-
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -321,74 +339,65 @@ const styles = StyleSheet.create({
     marginRight: 8,
     paddingHorizontal: 8,
   },
-
   searchIcon: {
     marginRight: 6,
   },
-
   searchInput: {
     flex: 1,
     height: 40,
     color: '#764BA2',
   },
-
   filterButton: {
     padding: 8,
+    marginRight: 8,
   },
-
   userIcon: {
     padding: 4,
   },
-
+  icon: {
+    width: 24,
+    height: 24,
+  },
   userPhoto: {
     width: 32,
     height: 32,
     borderRadius: 16,
   },
-
   dropdown: {
     backgroundColor: '#F1E6FF',
     padding: 16,
     borderRadius: 8,
     marginTop: 8,
   },
-
   userName: {
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 8,
     color: '#764BA2',
   },
-
   dropdownButton: {
     paddingVertical: 8,
   },
-
   dropdownButtonText: {
     fontSize: 14,
     color: '#764BA2',
   },
-
   content: {
     flex: 1,
     padding: 16,
   },
-
   greetingContainer: {
     marginBottom: 16,
   },
-
   greetingText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#764BA2',
   },
-
   welcomeText: {
     fontSize: 14,
     color: '#764BA2',
   },
-
   cadastrarButton: {
     backgroundColor: '#764BA2',
     paddingVertical: 10,
@@ -396,97 +405,81 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignItems: 'center',
   },
-
   cadastrarButtonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
-
   projetosContainer: {
     flex: 1,
   },
-
   projetoCard: {
     backgroundColor: '#F1E6FF',
     padding: 16,
     borderRadius: 8,
     marginBottom: 12,
   },
-
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-
   userIconSmall: {
     width: 32,
     height: 32,
     borderRadius: 16,
     marginRight: 8,
   },
-
   projetoUser: {
     fontWeight: 'bold',
     fontSize: 16,
     color: '#764BA2',
   },
-
   projetoTitle: {
     fontWeight: 'bold',
     fontSize: 18,
     color: '#764BA2',
     marginBottom: 4,
   },
-
   projetoText: {
     color: '#764BA2',
     marginBottom: 4,
   },
-
   projetoValue: {
     fontWeight: 'bold',
     color: '#764BA2',
   },
-
   projetoDate: {
     fontSize: 12,
     color: '#764BA2',
     marginBottom: 8,
   },
-
   contatoButton: {
     backgroundColor: '#764BA2',
     borderRadius: 8,
     paddingVertical: 6,
     alignItems: 'center',
   },
-
   contatoButtonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
-
   noProjetosText: {
     textAlign: 'center',
     color: '#764BA2',
     marginTop: 20,
   },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   modalContent: {
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 12,
     width: '80%',
   },
-
   modalContentLarge: {
     backgroundColor: '#fff',
     padding: 20,
@@ -494,7 +487,6 @@ const styles = StyleSheet.create({
     width: '90%',
     height: '80%',
   },
-
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -502,19 +494,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-
   radioOption: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
   },
-
   radioText: {
     fontSize: 16,
     marginLeft: 8,
     color: '#764BA2',
   },
-
   applyButton: {
     backgroundColor: '#764BA2',
     paddingVertical: 10,
@@ -522,12 +511,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignItems: 'center',
   },
-
   applyButtonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
-
   deleteButton: {
     backgroundColor: '#ff5555',
     borderRadius: 8,
@@ -535,12 +522,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     alignItems: 'center',
   },
-
   deleteButtonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
-
   closeModalButton: {
     backgroundColor: '#764BA2',
     paddingVertical: 12,
@@ -548,7 +533,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignItems: 'center',
   },
-
   closeModalButtonText: {
     color: '#fff',
     fontWeight: 'bold',
